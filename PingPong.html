@@ -1,0 +1,177 @@
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+canvas {
+  border: 1px solid black;
+}
+
+.score {
+  font-family: Arial;
+  font-size: 20px;
+  color: white;
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="canvas" width="600" height="400"></canvas>
+
+<script>
+// Get the canvas element and its context
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+// Define some constants
+var PADDLE_WIDTH = 10;
+var PADDLE_HEIGHT = 80;
+var PADDLE_SPEED = 5;
+var BALL_RADIUS = 10;
+var BALL_SPEED = 6;
+
+// Define some variables
+var leftPaddleY = (canvas.height - PADDLE_HEIGHT) / 2; // The y position of the left paddle
+var rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2; // The y position of the right paddle
+var ballX = canvas.width / 2; // The x position of the ball
+var ballY = canvas.height / 2; // The y position of the ball
+var ballVX = BALL_SPEED; // The x velocity of the ball
+var ballVY = BALL_SPEED; // The y velocity of the ball
+var leftScore = 0; // The score of the left player
+var rightScore = 0; // The score of the right player
+
+// Define some functions
+function draw() {
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the background
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the paddles
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT); // Left paddle
+  ctx.fillRect(canvas.width - PADDLE_WIDTH, rightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT); // Right paddle
+
+  // Draw the ball
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw the scores
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillText(leftScore, canvas.width / 4, 10); // Left score
+  ctx.fillText(rightScore, canvas.width * 3 / 4, 10); // Right score
+}
+
+function update() {
+  
+    // Move the paddles based on keyboard input
+    if (leftUpPressed && leftPaddleY > 0) {
+      leftPaddleY -= PADDLE_SPEED;
+    }
+    if (leftDownPressed && leftPaddleY < canvas.height - PADDLE_HEIGHT) {
+      leftPaddleY += PADDLE_SPEED;
+    }
+    if (rightUpPressed && rightPaddleY > 0) {
+      rightPaddleY -= PADDLE_SPEED;
+    }
+    if (rightDownPressed && rightPaddleY < canvas.height - PADDLE_HEIGHT) {
+      rightPaddleY += PADDLE_SPEED;
+    }
+
+    // Move the ball based on its velocity
+    ballX += ballVX;
+    ballY += ballVY;
+
+    // Bounce the ball off the top and bottom edges
+    if (ballY < BALL_RADIUS || ballY > canvas.height - BALL_RADIUS) {
+      ballVY = -ballVY;
+    }
+
+    // Bounce the ball off the paddles or score a point
+    if (ballX < PADDLE_WIDTH + BALL_RADIUS) { // Left edge
+      if (ballY > leftPaddleY && ballY < leftPaddleY + PADDLE_HEIGHT) { // Hit the left paddle
+        ballVX = -ballVX;
+        ballVY += (ballY - (leftPaddleY + PADDLE_HEIGHT / 2)) / PADDLE_HEIGHT * BALL_SPEED; // Add some spin based on where it hit the paddle
+      } else { // Missed the left paddle
+        rightScore++; // Increase the right score
+        resetBall(); // Reset the ball
+      }
+    }
+
+    if (ballX > canvas.width - PADDLE_WIDTH - BALL_RADIUS) { // Right edge
+      if (ballY > rightPaddleY && ballY < rightPaddleY + PADDLE_HEIGHT) { // Hit the right paddle
+        ballVX = -ballVX;
+        ballVY += (ballY - (rightPaddleY + PADDLE_HEIGHT / 2)) / PADDLE_HEIGHT * BALL_SPEED; // Add some spin based on where it hit the paddle
+      } else { // Missed the right paddle
+        leftScore++; // Increase the left score
+        resetBall(); // Reset the ball
+      }
+    }
+}
+
+
+function resetBall() {
+  // Reset the ball position and velocity
+  ballX = canvas.width / 2;
+  ballY = canvas.height / 2;
+  ballVX = BALL_SPEED;
+  ballVY = BALL_SPEED;
+}
+
+// Define some variables to store the keyboard input
+var leftUpPressed = false; // Whether the up arrow key is pressed for the left paddle
+var leftDownPressed = false; // Whether the down arrow key is pressed for the left paddle
+var rightUpPressed = false; // Whether the W key is pressed for the right paddle
+var rightDownPressed = false; // Whether the S key is pressed for the right paddle
+
+// Define some event listeners to handle keyboard input
+document.addEventListener("keydown", function(event) {
+  if (event.key == "ArrowUp") {
+    leftUpPressed = true;
+  }
+  if (event.key == "ArrowDown") {
+    leftDownPressed = true;
+  }
+  if (event.key == "w") {
+    rightUpPressed = true;
+  }
+  if (event.key == "s") {
+    rightDownPressed = true;
+  }
+});
+
+document.addEventListener("keyup", function(event) {
+  if (event.key == "ArrowUp") {
+    leftUpPressed = false;
+  }
+  if (event.key == "ArrowDown") {
+    leftDownPressed = false;
+  }
+  if (event.key == "w") {
+    rightUpPressed = false;
+  }
+  if (event.key == "s") {
+    rightDownPressed = false;
+  }
+});
+
+// Define a function to run the game loop
+function gameLoop() {
+  draw(); // Draw the game
+  update(); // Update the game logic
+  requestAnimationFrame(gameLoop); // Request to run the game loop again
+}
+
+// Start the game loop
+gameLoop();
+</script>
+
+</body>
+</html>
